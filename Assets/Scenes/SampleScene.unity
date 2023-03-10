@@ -249,6 +249,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 935b5e5d0d28ad848b42d7cfb8ff5cc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Dimension: 300
+  Resolution: 2
+  CentrerPivot: 1
 --- !u!64 &951269398
 MeshCollider:
   m_ObjectHideFlags: 0
