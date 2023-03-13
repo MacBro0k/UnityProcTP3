@@ -10,6 +10,18 @@ public class CreateTerrain : MonoBehaviour
 
     public int dimension = 160; // Dimension du terrain
     public int resolution = 8; // Résolution du maillage plan (puissance de 2)
+    
+    // Enum pour les types d'affichage du gizmo
+    [System.Flags]
+    public enum VisualizationMode
+    {
+        None = 0,
+        Vertices = 1,
+        Edges = 2,
+        Normals = 4,
+    }
+
+    public VisualizationMode visualizationMode = VisualizationMode.None;
 
     void Start()
     {
@@ -57,4 +69,59 @@ public class CreateTerrain : MonoBehaviour
         // Assigner le maillage à l'objet
         GetComponent<MeshFilter>().mesh = p_mesh;
     }
+
+    void OnDrawGizmos()
+    {
+        if (visualizationMode == VisualizationMode.None)
+            return;
+
+        // Affichage des sommets
+        if ((visualizationMode & VisualizationMode.Vertices) != 0)
+        {
+            Gizmos.color = new Color(1.0f, 0.5f, 0.0f);
+            foreach (Vector3 vertex in p_mesh.vertices)
+            {
+                Gizmos.DrawSphere(transform.TransformPoint(vertex), 0.8f);
+            }
+        }
+
+        // Affichage des arêtes
+        if ((visualizationMode & VisualizationMode.Edges) != 0)
+        {
+            if (p_mesh == null || visualizationMode == VisualizationMode.None)
+                return;
+            Gizmos.color = Color.white;
+            for (int i = 0; i < p_mesh.triangles.Length; i += 3)
+            {
+                Gizmos.DrawLine(
+                    transform.TransformPoint(p_mesh.vertices[p_mesh.triangles[i]]),
+                    transform.TransformPoint(p_mesh.vertices[p_mesh.triangles[i + 1]])
+                );
+                Gizmos.DrawLine(
+                    transform.TransformPoint(p_mesh.vertices[p_mesh.triangles[i + 1]]),
+                    transform.TransformPoint(p_mesh.vertices[p_mesh.triangles[i + 2]])
+                );
+                Gizmos.DrawLine(
+                    transform.TransformPoint(p_mesh.vertices[p_mesh.triangles[i + 2]]),
+                    transform.TransformPoint(p_mesh.vertices[p_mesh.triangles[i]])
+                );
+            }
+        }
+
+        // Affichage des normales
+        if ((visualizationMode & VisualizationMode.Normals) != 0)
+        {
+            Gizmos.color = Color.green;
+            for (int i = 0; i < p_mesh.triangles.Length; i += 3)
+            {
+                Vector3 p1 = p_mesh.vertices[p_mesh.triangles[i]];
+                Vector3 p2 = p_mesh.vertices[p_mesh.triangles[i + 1]];
+                Vector3 p3 = p_mesh.vertices[p_mesh.triangles[i + 2]];
+                Vector3 normal = (p_mesh.normals[p_mesh.triangles[i]] + p_mesh.normals[p_mesh.triangles[i + 1]] + p_mesh.normals[p_mesh.triangles[i + 2]]) / 3f; // moyenne des normales des sommets
+                Vector3 center = (p1 + p2 + p3) / 3f;
+                Gizmos.DrawLine(transform.TransformPoint(center), transform.TransformPoint(center + normal));
+            }
+        }
+    }
 }
+

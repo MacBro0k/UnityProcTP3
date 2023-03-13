@@ -348,6 +348,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dimension: 160
   resolution: 8
+  visualizationMode: 0
 --- !u!64 &951269398
 MeshCollider:
   m_ObjectHideFlags: 0
