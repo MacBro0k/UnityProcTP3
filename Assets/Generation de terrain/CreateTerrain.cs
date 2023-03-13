@@ -7,63 +7,54 @@ public class CreateTerrain : MonoBehaviour
     private Mesh p_mesh;
     private Vector3[] p_vertices;
     private int[] p_triangles;
-    private Color32[] p_colors;
-    private Vector3[] p_normals;
 
-    public int Dimension;
-    public int Resolution;
-    public bool CentrerPivot;
-
-    // Start is called before the first frame update
-    void Awake()
-    {
-        if(Resolution%2 == 1)
-        {
-            Debug.LogError("Resolution must be an power of 2");
-        }
-    }
+    public int dimension = 160; // Dimension du terrain
+    public int resolution = 8; // Résolution du maillage plan (puissance de 2)
 
     void Start()
     {
-        GenerateTerrain();
-    }
-
-    // Generation du terrain selon la resolution et la dimension
-    private void GenerateTerrain()
-    {
+        // Création du maillage
         p_mesh = new Mesh();
-        p_mesh.name = "MyProceduralTerrain";
-        int margin = Dimension / Resolution;
-        // les vertices du terrain
-        for (int i = 0; i < Resolution; i++)
+        p_mesh.Clear();
+        p_mesh.name = "Terrain";
+
+        // Création des sommets
+        p_vertices = new Vector3[resolution * resolution];
+        float spacing = (float)dimension / (resolution - 1);
+        float offset = dimension / 2f;
+        for (int z = 0; z < resolution; z++)
         {
-            for (int j = 0; j < Resolution; j++)
+            for (int x = 0; x < resolution; x++)
             {
-                int index = i * Resolution + j;
-                p_vertices[index] = new Vector3(i, 0, j);
-                p_colors[index] = Color.white;
-                p_normals[index] = Vector3.up;
-            }
-        }
-        // les triangles du terrain
-        for (int i = 0; i < Resolution - 1; i++)
-        {
-            for (int j = 0; j < Resolution - 1; j++)
-            {
-                int index = i * (Resolution - 1) + j;
-                p_triangles[index * 6] = i * Resolution + j;
-                p_triangles[index * 6 + 1] = i * Resolution + j + 1;
-                p_triangles[index * 6 + 2] = (i + 1) * Resolution + j;
-                p_triangles[index * 6 + 3] = (i + 1) * Resolution + j;
-                p_triangles[index * 6 + 4] = i * Resolution + j + 1;
-                p_triangles[index * 6 + 5] = (i + 1) * Resolution + j + 1;
+                p_vertices[z * resolution + x] = new Vector3(x * spacing - offset, 0, z * spacing - offset);
             }
         }
 
+
+        // Création des triangles
+        p_triangles = new int[(2 * (resolution - 1) * (resolution - 1)) * 3];
+        int t = 0;
+        for (int z = 0; z < resolution - 1; z++)
+        {
+            for (int x = 0; x < resolution - 1; x++)
+            {
+                int i = z * resolution + x;
+                p_triangles[t++] = i;
+                p_triangles[t++] = i + resolution;
+                p_triangles[t++] = i + resolution + 1;
+
+                p_triangles[t++] = i;
+                p_triangles[t++] = i + resolution + 1;
+                p_triangles[t++] = i + 1;
+            }
+        }
         p_mesh.vertices = p_vertices;
         p_mesh.triangles = p_triangles;
-        p_mesh.normals = p_normals;
+
+        // Recalculer les normales pour l'éclairage
         p_mesh.RecalculateNormals();
+
+        // Assigner le maillage à l'objet
         GetComponent<MeshFilter>().mesh = p_mesh;
     }
 }
