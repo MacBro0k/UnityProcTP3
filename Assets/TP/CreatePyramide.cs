@@ -53,7 +53,7 @@ public class CreatePyramide : MonoBehaviour
                 GetComponent<MeshFilter>().mesh = p_mesh;
     }
 
-    // Calcule la normale (normalisée) au triangle numTri
+    // Calcule la normale (normalisï¿½e) au triangle numTri
     //Vector3 NormalTriangle(int numTri)
     //{
     //    Vector3 normal = new Vector3(0, 0, 0);
