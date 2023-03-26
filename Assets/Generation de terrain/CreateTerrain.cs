@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class CreateTerrain : MonoBehaviour
 {
-    private Mesh p_mesh;
-    private Vector3[] p_vertices;
+    public Mesh p_mesh;
+    public Vector3[] p_vertices;
     private int[] p_triangles;
+    public List<int>[] p_vertexNeighbors; // Liste des indices des vertices voisins pour chaque vertex
+
 
     public int dimension = 160; // Dimension du terrain
     public int resolution = 8; // Résolution du maillage plan (puissance de 2)
@@ -23,15 +25,20 @@ public class CreateTerrain : MonoBehaviour
 
     public VisualizationMode visualizationMode = VisualizationMode.None;
 
-    void Start()
+    void Awake()
     {
         // Création du maillage
         p_mesh = new Mesh();
         p_mesh.Clear();
         p_mesh.name = "Terrain";
 
+        // Ajouter un MeshCollider au terrain
+        MeshCollider meshCollider = gameObject.AddComponent<MeshCollider>();
+        meshCollider.sharedMesh = p_mesh;
+
         // Création des sommets
         p_vertices = new Vector3[resolution * resolution];
+        p_vertexNeighbors = new List<int>[p_vertices.Length]; // Initialisation de la liste des vertices voisins
         float spacing = (float)dimension / (resolution - 1);
         float offset = dimension / 2f;
         for (int z = 0; z < resolution; z++)
@@ -39,6 +46,7 @@ public class CreateTerrain : MonoBehaviour
             for (int x = 0; x < resolution; x++)
             {
                 p_vertices[z * resolution + x] = new Vector3(x * spacing - offset, 0, z * spacing - offset);
+                p_vertexNeighbors[z * resolution + x] = new List<int>(); // Initialisation de la liste des vertices voisins pour chaque vertex
             }
         }
 
@@ -58,12 +66,20 @@ public class CreateTerrain : MonoBehaviour
                 p_triangles[t++] = i;
                 p_triangles[t++] = i + resolution + 1;
                 p_triangles[t++] = i + 1;
+
+                // Ajout des indices des vertices voisins pour chaque vertex
+                p_vertexNeighbors[i].Add(i + 1);
+                p_vertexNeighbors[i].Add(i + resolution);
+                p_vertexNeighbors[i + 1].Add(i);
+                p_vertexNeighbors[i + resolution].Add(i);
+                p_vertexNeighbors[i + resolution + 1].Add(i + resolution);
+                p_vertexNeighbors[i + resolution + 1].Add(i + resolution + 1);
             }
         }
         p_mesh.vertices = p_vertices;
         p_mesh.triangles = p_triangles;
 
-        // Recalculer les normales pour l'éclairage
+        // Recalculer les normales pour l'éclairag
         p_mesh.RecalculateNormals();
 
         // Assigner le maillage à l'objet
