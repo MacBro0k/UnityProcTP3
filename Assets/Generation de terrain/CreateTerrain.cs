@@ -4,14 +4,21 @@ using UnityEngine;
 
 public class CreateTerrain : MonoBehaviour
 {
+    [HideInInspector]
     public Mesh p_mesh;
+
+    [HideInInspector]
     public Vector3[] p_vertices;
-    private int[] p_triangles;
+
+    [HideInInspector]
     public List<int>[] p_vertexNeighbors; // Liste des indices des vertices voisins pour chaque vertex
+
+    private int[] p_triangles;
 
 
     public int dimension = 160; // Dimension du terrain
     public int resolution = 8; // Résolution du maillage plan (puissance de 2)
+
     
     // Enum pour les types d'affichage du gizmo
     [System.Flags]
@@ -24,6 +31,13 @@ public class CreateTerrain : MonoBehaviour
     }
 
     public VisualizationMode visualizationMode = VisualizationMode.None;
+
+    //section de géneration de terrain de l'inspector
+    [Header("Terrain Generation")]
+
+    public Texture2D heightmap;
+    public float minHeight = 0.0f;
+    public float maxHeight = 10.0f;
 
     void Awake()
     {
@@ -85,6 +99,114 @@ public class CreateTerrain : MonoBehaviour
         // Assigner le maillage à l'objet
         GetComponent<MeshFilter>().mesh = p_mesh;
     }
+
+    // Rééchantillonne l'image 'src' pour qu'elle ait la taille 'dstWidth' x 'dstHeight'
+    public static Texture2D ResizeTexture(Texture2D src, int dstWidth, int dstHeight)
+    {
+        Color[] srcPixels = src.GetPixels();
+        Color[] dstPixels = new Color[dstWidth * dstHeight];
+        float srcAspect = (float)src.width / (float)src.height;
+        float dstAspect = (float)dstWidth / (float)dstHeight;
+
+        for (int y = 0; y < dstHeight; y++)
+        {
+            for (int x = 0; x < dstWidth; x++)
+            {
+                float u = ((float)x + 0.5f) / (float)dstWidth;
+                float v = ((float)y + 0.5f) / (float)dstHeight;
+
+                float px = u * src.width;
+                float py = v * src.height;
+
+                int ix0 = Mathf.FloorToInt(px - 0.5f);
+                int iy0 = Mathf.FloorToInt(py - 0.5f);
+                int ix1 = ix0 + 1;
+                int iy1 = iy0 + 1;
+
+                float tx = px - (float)ix0 - 0.5f;
+                float ty = py - (float)iy0 - 0.5f;
+
+                float w00 = (1.0f - tx) * (1.0f - ty);
+                float w01 = tx * (1.0f - ty);
+                float w10 = (1.0f - tx) * ty;
+                float w11 = tx * ty;
+
+                ix0 = Mathf.Clamp(ix0, 0, src.width - 1);
+                iy0 = Mathf.Clamp(iy0, 0, src.height - 1);
+                ix1 = Mathf.Clamp(ix1, 0, src.width - 1);
+                iy1 = Mathf.Clamp(iy1, 0, src.height - 1);
+
+                Color c00 = srcPixels[iy0 * src.width + ix0];
+                Color c01 = srcPixels[iy0 * src.width + ix1];
+                Color c10 = srcPixels[iy1 * src.width + ix0];
+                Color c11 = srcPixels[iy1 * src.width + ix1];
+
+                Color dstColor = w00 * c00 + w01 * c01 + w10 * c10 + w11 * c11;
+                dstPixels[y * dstWidth + x] = dstColor;
+            }
+        }
+
+        Texture2D dst = new Texture2D(dstWidth, dstHeight);
+        dst.SetPixels(dstPixels);
+        dst.Apply();
+
+        return dst;
+    }
+
+
+    // Bouton pour générer le terrain à partir d'une heightmap
+    public void GenerateTerrain()
+    {
+        if(heightmap == null)
+        {
+            Debug.LogError("Heightmap is null");
+            return;
+        }
+        // Vérifier que la résolution de l'image ne dépasse pas le nombre maximum de vertices
+        int heightmapResolution = Mathf.Min(heightmap.width, heightmap.height); // On prend la plus petite dimension
+
+        // Calculer la résolution du terrain actuel
+        int terrainResolution = p_vertices.Length;
+
+        // Adapter la taille de la heightmap si nécessaire
+        if (heightmapResolution != resolution*resolution)
+        {
+            // Créer une nouvelle texture avec la résolution du terrain
+            Texture2D resizedHeightmap = new Texture2D(resolution, resolution, TextureFormat.RGBA32, false);
+            for (int z = 0; z < resolution; z++)
+            {
+                for (int x = 0; x < resolution; x++)
+                {
+                    // Interpoler la valeur de pixel correspondant au nouveau vertex depuis la heightmap originale
+                    float u = x / (float)resolution;
+                    float v = z / (float)resolution;
+                    resizedHeightmap.SetPixel(x, z, heightmap.GetPixelBilinear(u, v));
+                }
+            }
+            resizedHeightmap.Apply();
+            heightmap = resizedHeightmap;
+        }
+
+        // Modifier les vertices
+        for (int i = 0; i < resolution; i++)
+        {
+            for (int j = 0; j < resolution; j++)
+            {
+                float height = Mathf.Lerp(minHeight, maxHeight, heightmap.GetPixel(i, j).grayscale);
+                p_vertices[i * resolution + j].y += height;
+            }
+        }
+
+        // Assigner les vertices et recalculer les normales
+        p_mesh.vertices = p_vertices;
+        p_mesh.RecalculateNormals();
+
+        // Assigner le maillage au MeshCollider
+        MeshCollider meshCollider = GetComponent<MeshCollider>();
+        meshCollider.sharedMesh = p_mesh;
+    }
+
+
 
     void OnDrawGizmos()
     {

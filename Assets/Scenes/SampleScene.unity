@@ -349,7 +349,10 @@ MonoBehaviour:
   p_mesh: {fileID: 0}
   p_vertices: []
   dimension: 160
-  resolution: 24
+  resolution: 10
+  heightmap: {fileID: 2800000, guid: 60915c5a61b96844aa9f0d4b378600f7, type: 3}
+  minHeight: -20
+  maxHeight: 20
   visualizationMode: 0
 --- !u!23 &951269399
 MeshRenderer:
@@ -453,6 +456,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  intensity: 0.2
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0

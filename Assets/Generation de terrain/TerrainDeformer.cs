@@ -11,6 +11,7 @@ public class TerrainDeformer : MonoBehaviour
 
     public float radius = 1.0f; // Rayon du pattern de déformation
     public AnimationCurve attenuationCurve; // Courbe d'atténuation du pattern
+    public float intensity = 1.0f; // Intensité de la déformation
 
     private const float MAX_RADIUS = 10.0f;
     private const float MIN_RADIUS = 0.1f;
@@ -67,8 +68,8 @@ public class TerrainDeformer : MonoBehaviour
                 // Calculer la force de la déformation en fonction de la distance sur la courbe d'atténuation
                 float attenuation = attenuationCurve.Evaluate(distance / radius);
 
-                // Modifier la hauteur du vertex en fonction de la force de la déformation
-                float height = vertex.y + (attenuation * (isDepressing ? -1 : 1));
+                // Modifier la hauteur du vertex en fonction de la force de la déformation et de l'intensité
+                float height = vertex.y + (attenuation * intensity * (isDepressing ? -1 : 1));
                 p_vertices[i] = new Vector3(vertex.x, height, vertex.z);
 
                 // Modifier la hauteur des vertices voisins également
@@ -79,7 +80,7 @@ public class TerrainDeformer : MonoBehaviour
                     if (neighborDistance <= radius)
                     {
                         float neighborAttenuation = attenuationCurve.Evaluate(neighborDistance / radius);
-                        float neighborHeight = neighbor.y + (neighborAttenuation * (isDepressing ? -1 : 1));
+                        float neighborHeight = neighbor.y + (neighborAttenuation * intensity * (isDepressing ? -1 : 1));
                         p_vertices[neighborIndex] = new Vector3(neighbor.x, neighborHeight, neighbor.z);
                     }
                 }
@@ -120,16 +121,18 @@ public class TerrainDeformer : MonoBehaviour
             {
                 DeformTerrain(FindClosestVertexIndex(hitInfo.point), true);
             }
-        } else if (Input.GetKeyUp(KeyCode.LeftShift)){
+        } else if (Input.GetKey(KeyCode.LeftShift)){
             // Détection de la molette de la souris
             if (Input.mouseScrollDelta.y != 0)
             {
+                Debug.Log("Scroll: " + Input.mouseScrollDelta.y);
                 // Modifier le rayon du pattern en fonction de la direction de la molette
                 float delta = Input.mouseScrollDelta.y > 0 ? RADIUS_STEP : -RADIUS_STEP;
                 radius += delta;
 
                 // Limiter le rayon dans la plage autorisée
                 radius = Mathf.Clamp(radius, MIN_RADIUS, MAX_RADIUS);
+                Debug.Log("Radius: " + radius);
             }
         }
     }
