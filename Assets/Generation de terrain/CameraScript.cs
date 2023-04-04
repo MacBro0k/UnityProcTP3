@@ -13,11 +13,25 @@ public class CameraScript : MonoBehaviour
     public float Altitude = 5f;
     void Update()
     {
+        // MoveSpeed change selon la distance entre la position désirée et la position actuelle
+        MoveSpeed = 1f * Vector3.Distance(gameObject.transform.position, Pivot.transform.position);
+
+        RaycastHit hit;
+        Debug.DrawRay(Pivot.transform.position, transform.TransformDirection(Vector3.down) * Mathf.Infinity, Color.yellow);
+        if (Physics.Raycast(Pivot.transform.position+Pivot.transform.position.y*Vector3.up*Mathf.Infinity,Pivot.transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity))
+        {
+            if (Pivot.transform.position.y != hit.transform.position.y)
+            {
+                Pivot.transform.position = new Vector3(Pivot.transform.position.x, hit.transform.position.y, Pivot.transform.position.z);
+            }
+
+        }
+
         if (Vector3.Distance(Pivot.transform.position,TargetPos) >= 1f)
-            Pivot.transform.position = Vector3.MoveTowards(Pivot.transform.position, TargetPos, MoveSpeed * Time.deltaTime);
+            Pivot.transform.position = Vector3.MoveTowards(Pivot.transform.position, TargetPos, (MoveSpeed * Vector3.Distance(Pivot.transform.position, TargetPos)) * Time.deltaTime);
         else
         {
-            // Camera Orbit
+            // Camera orbit & movement
             if (Input.GetKey(KeyCode.D))
             {
                 if (Input.GetKey(KeyCode.LeftShift))
@@ -33,40 +47,33 @@ public class CameraScript : MonoBehaviour
                     Pivot.transform.Translate(Vector3.left * Time.deltaTime * MoveSpeed);
             }
 
-            // Camera Zoom & movement
+
             if (Input.GetKey(KeyCode.Z))
             {
                 if (Input.GetKey(KeyCode.LeftShift))
-                    transform.Translate(Vector3.forward * Time.deltaTime * RotateSpeed * 5);
+                    transform.Translate(Vector3.forward * Time.deltaTime * MoveSpeed);
+
                 else if (Vector3.Distance(gameObject.transform.position, Pivot.transform.position) > MinOffset)
                     Pivot.transform.Translate(Vector3.forward * Time.deltaTime * MoveSpeed);
             }
             if (Input.GetKey(KeyCode.S))
             {
                 if (Input.GetKey(KeyCode.LeftShift))
-                    transform.Translate(Vector3.back * Time.deltaTime * RotateSpeed * 5);
+                    transform.Translate(Vector3.back * Time.deltaTime * MoveSpeed);
+
                 else
                     Pivot.transform.Translate(Vector3.back * Time.deltaTime * MoveSpeed);
             }
 
             TargetPos = Pivot.transform.position;
 
-            if (Input.GetMouseButtonUp(1))
+            //Camera drag
+            if (Input.GetMouseButtonDown(1))
             {
                 TargetPos = GetMouseAsWorldPoint();
             }
         }
 
-        RaycastHit hit;
-        if (Physics.Raycast(Pivot.transform.position,Pivot.transform.TransformDirection(Vector3.down), out hit, Mathf.Infinity))
-        {
-            if (Pivot.transform.position.y != hit.transform.position.y)
-            {
-                Pivot.transform.position = new Vector3(Pivot.transform.position.x, hit.transform.position.y, Pivot.transform.position.z);
-            }
-            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down) * Mathf.Infinity, Color.yellow);
-
-        }
         transform.LookAt(Pivot);
     }
 

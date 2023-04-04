@@ -46,10 +46,6 @@ public class CreateTerrain : MonoBehaviour
         p_mesh.Clear();
         p_mesh.name = "Terrain";
 
-        // Ajouter un MeshCollider au terrain
-        MeshCollider meshCollider = gameObject.AddComponent<MeshCollider>();
-        meshCollider.sharedMesh = p_mesh;
-
         // Création des sommets
         p_vertices = new Vector3[resolution * resolution];
         p_vertexNeighbors = new List<int>[p_vertices.Length]; // Initialisation de la liste des vertices voisins
@@ -98,6 +94,10 @@ public class CreateTerrain : MonoBehaviour
 
         // Assigner le maillage à l'objet
         GetComponent<MeshFilter>().mesh = p_mesh;
+
+        // Ajouter un MeshCollider au terrain
+        MeshCollider meshCollider = gameObject.AddComponent<MeshCollider>();
+        meshCollider.sharedMesh = p_mesh;
     }
 
     // Rééchantillonne l'image 'src' pour qu'elle ait la taille 'dstWidth' x 'dstHeight'

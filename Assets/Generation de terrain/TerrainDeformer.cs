@@ -53,6 +53,7 @@ public class TerrainDeformer : MonoBehaviour
 
     void DeformTerrain(Vector3 point, bool isDepressing)
     {
+        Debug.Log("depressing" + isDepressing);
         // Convertir le point dans l'espace local de l'objet
         point = transform.InverseTransformPoint(point);
 
@@ -98,30 +99,28 @@ public class TerrainDeformer : MonoBehaviour
 
     void Update()
     {
-        // Détection du clic gauche
-        if (Input.GetMouseButton(0))
+        // Détection du clic gauche en maintenant CTRL enfoncé
+        if (Input.GetKey(KeyCode.LeftControl) && Input.GetMouseButton(0))
+        {
+            // Lancer un raycast depuis la caméra
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hitInfo;
+            if (Physics.Raycast(ray, out hitInfo))
+            {
+                DeformTerrain(FindClosestVertexIndex(hitInfo.point), true);
+            }
+        }
+        else if (Input.GetMouseButton(0))
         {
             // Lancer un raycast depuis la caméra
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hitInfo;
             if (Physics.Raycast(ray, out hitInfo)){
-                Debug.Log("Hit: " + hitInfo.point);
                 // Appeler la méthode de déformation du terrain dans le script TerrainDeformer
                 DeformTerrain(FindClosestVertexIndex(hitInfo.point), false);
             }   
-        }
-
-        // Détection du clic gauche en maintenant CTRL enfoncé
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetMouseButton(0))
-        {
-            // Lancer un raycast depuis la caméra avec une portée plus grande pour inclure les vertices voisins
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hitInfo;
-            if (Physics.Raycast(ray, out hitInfo, 10.0f))
-            {
-                DeformTerrain(FindClosestVertexIndex(hitInfo.point), true);
-            }
-        } else if (Input.GetKey(KeyCode.LeftShift)){
+        } 
+        if (Input.GetKey(KeyCode.LeftShift)){
             // Détection de la molette de la souris
             if (Input.mouseScrollDelta.y != 0)
             {
