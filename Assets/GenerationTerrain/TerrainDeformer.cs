@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class TerrainDeformer : MonoBehaviour
 {
@@ -100,7 +101,7 @@ public class TerrainDeformer : MonoBehaviour
     void Update()
     {
         // Détection du clic gauche en maintenant CTRL enfoncé
-        if (Input.GetKey(KeyCode.LeftControl) && Input.GetMouseButton(0))
+        if (Input.GetKey(KeyCode.LeftControl) && Input.GetMouseButton(0) && ! EventSystem.current.IsPointerOverGameObject())
         {
             // Lancer un raycast depuis la caméra
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -110,7 +111,7 @@ public class TerrainDeformer : MonoBehaviour
                 DeformTerrain(FindClosestVertexIndex(hitInfo.point), true);
             }
         }
-        else if (Input.GetMouseButton(0))
+        else if (Input.GetMouseButton(0) && ! EventSystem.current.IsPointerOverGameObject())
         {
             // Lancer un raycast depuis la caméra
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
