@@ -14,7 +14,7 @@ public class TerrainDeformer : MonoBehaviour
     public AnimationCurve attenuationCurve; // Courbe d'atténuation du pattern
     public float intensity = 1.0f; // Intensité de la déformation
 
-    private const float MAX_RADIUS = 10.0f;
+    private const float MAX_RADIUS = 100.0f;
     private const float MIN_RADIUS = 0.1f;
     private const float RADIUS_STEP = 0.1f;
 
@@ -35,7 +35,6 @@ public class TerrainDeformer : MonoBehaviour
         for (int i = 0; i < p_vertices.Length; i++)
         {
             float distance = Vector3.Distance(p_vertices[i], point);
-            Debug.Log("Distance: " + distance);
 
             if (distance < closestDistance)
             {
@@ -48,13 +47,11 @@ public class TerrainDeformer : MonoBehaviour
         {
             Debug.LogError("No closest vertex found!");
         }
-        Debug.Log("Closest vertex index: " + closestVertexIndex);
         return p_vertices[closestVertexIndex];
     }
 
     void DeformTerrain(Vector3 point, bool isDepressing)
     {
-        Debug.Log("depressing" + isDepressing);
         // Convertir le point dans l'espace local de l'objet
         point = transform.InverseTransformPoint(point);
 
@@ -125,14 +122,24 @@ public class TerrainDeformer : MonoBehaviour
             // Détection de la molette de la souris
             if (Input.mouseScrollDelta.y != 0)
             {
-                Debug.Log("Scroll: " + Input.mouseScrollDelta.y);
                 // Modifier le rayon du pattern en fonction de la direction de la molette
                 float delta = Input.mouseScrollDelta.y > 0 ? RADIUS_STEP : -RADIUS_STEP;
                 radius += delta;
 
                 // Limiter le rayon dans la plage autorisée
                 radius = Mathf.Clamp(radius, MIN_RADIUS, MAX_RADIUS);
-                Debug.Log("Radius: " + radius);
+            }
+        }
+        if (Input.GetKey(KeyCode.LeftControl)){
+            // Détection de la molette de la souris
+            if (Input.mouseScrollDelta.y != 0)
+            {
+                // Modifier l'intensité de la déformation en fonction de la direction de la molette
+                float delta = Input.mouseScrollDelta.y > 0 ? 0.1f : -0.1f;
+                intensity += delta;
+
+                // Limiter l'intensité dans la plage autorisée
+                intensity = Mathf.Clamp(intensity, 0.0f, 10.0f);
             }
         }
     }
